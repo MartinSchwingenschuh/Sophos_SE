@@ -1,19 +1,14 @@
 package Server;
-import java.io.File;
 import java.math.BigInteger;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.security.interfaces.RSAPublicKey;
 import java.util.LinkedList;
 import java.util.List;
 
 import javax.crypto.SealedObject;
-
-import org.apache.commons.lang3.SerializationUtils;
 
 import shared.Crypto;
 import shared.DB;
@@ -21,8 +16,6 @@ import shared.Token;
 
 public class Server extends UnicastRemoteObject implements IRemoteServer{
 
-    // private Map<BigInteger,BigInteger> T;
-    // private Crypto crypto;
     private RSAPublicKey publicKey;
     private DB<Token,BigInteger> T; //Token UT -> BigInteger e
     final static String T_DB_NAME = "TokenStorage";
@@ -32,12 +25,6 @@ public class Server extends UnicastRemoteObject implements IRemoteServer{
 
 
     public Server() throws RemoteException{
-        // try {
-        //     this.crypto = new Crypto(false,"./src/Server/","password");
-        // } catch (InvalidKeyException | NoSuchAlgorithmException e) {
-        //     e.printStackTrace();
-        // }
-
         //init rocksDB
         T = new DB<Token,BigInteger>(DB_PARENT_DIR, T_DB_NAME);
         D = new DB<BigInteger,SealedObject>(DB_PARENT_DIR, D_DB_NAME);
@@ -73,7 +60,6 @@ public class Server extends UnicastRemoteObject implements IRemoteServer{
             System.out.println("[SINFO] search with UT " + UT.val);
 
             //get the encrypted index
-            // byte[] test = T.find(UT);
             BigInteger e = T.find(UT);
 
             if(e != null){
@@ -105,14 +91,6 @@ public class Server extends UnicastRemoteObject implements IRemoteServer{
     }
 
     @Override
-    public List<File> getAllFiles() throws RemoteException {
-        // TODO Auto-generated method stub
-        System.out.println("[INFO] getAllFIles accessed");
-        
-        return null;
-    }
-
-    @Override
     public List<BigInteger> getAllFileIndices() throws RemoteException {
         List<byte[]> keyList = D.getAllKeys();
         List<BigInteger> retVal = new LinkedList<BigInteger>();
@@ -126,7 +104,6 @@ public class Server extends UnicastRemoteObject implements IRemoteServer{
 
     @Override
     public void setPublicKey(RSAPublicKey key){
-        // crypto.setRSAKeys(null, key);
         this.publicKey = key;
     }
 

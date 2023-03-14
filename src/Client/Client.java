@@ -35,19 +35,21 @@ public class Client {
 
     //communication with server
     IRemoteServer serverStub;
-    private String serverIP;
     static final String DEFAULT_SERVER_IP = "localhost";
-    private String serverPort;
     static final int DEFAULT_SERVER_PORT = 5000;
 
 
     //GUI
-    GUI gui;
+    private GUI gui;
 
+    /**
+     * 
+     */
     public Client(){
         //init the token storage
         this.W = new DB<String,Token>("./src/Client/", "TokenStorage");
 
+        //init the crypto functions
         try {
             this.crypto = new Crypto("./src/Client/","password");
         } catch (Exception e) {
@@ -58,7 +60,7 @@ public class Client {
         try {
             Registry registry = LocateRegistry.getRegistry(DEFAULT_SERVER_IP,DEFAULT_SERVER_PORT);
             serverStub = (IRemoteServer) registry.lookup("Sophos:ServerStub");
-            serverStub.setPublicKey(crypto.publicKey);
+            serverStub.setPublicKey(crypto.getPublicKey());
         } catch (Exception e) {
             System.err.println("Client exception: " + e.toString());
             e.printStackTrace();
@@ -71,16 +73,14 @@ public class Client {
     /**
      * 
      * @param word
-     * @param docInd
+     * @param eind
      */
     void update(String word, BigInteger eind){
 
-        //TODO: build a logger
         if(word == null){ return; }
         if(eind == null){return; }
 
         //read ST from W[w]
-        // Token ST = W.get(word);
         Token ST = W.find(word);
 
         //if first entry for the word create a new random ST
@@ -90,25 +90,20 @@ public class Client {
             ST.val = crypto.getRandomST();
             ST.count = 1;
         }else{
-            ST.val = Crypto.itdp(ST.val, crypto.privateKey);
+            ST.val = Crypto.itdp(ST.val, crypto.getPrivateKey());
             ST.count++;
         }
 
         //store STc+1
-        // W.put(word, ST);
         W.save(word, ST);
         
-        //KW <- F(Ks,w) //TODO: check if that is really a PRF
-        BigInteger Kw = Crypto.hmac(new BigInteger(word.getBytes()), crypto.symmetricKey);
+        //KW <- F(Ks,w)
+        BigInteger Kw = Crypto.hmac(new BigInteger(word.getBytes()), crypto.getSecretKey());
         
         //calculate UT
         Token UT = new Token();
         UT.val = Crypto.hmac(Kw,ST.val);
         UT.count = -1;    
-
-        //TODO: is the ind really the docname/path?
-        //TODO: replace this with a proper index infrastructure
-        // BigInteger ind = new BigInteger(eind);
 
         //calculate the encrypted index
         BigInteger e = eind.xor(UT.val);
@@ -127,24 +122,29 @@ public class Client {
      */
     public List<File> search(String word){
         
-        // Token ST = W.get(word);
+        //(STc,c) <- W[w]
         Token ST = W.find(word);
         if(ST == null){ 
             System.out.println("[INFO]" + word + "not found");
             return null; 
         }       
 
-        BigInteger Kw = Crypto.hmac(new BigInteger(word.getBytes()), crypto.symmetricKey);
+        //Kw <- FKs(w)
+        BigInteger Kw = Crypto.hmac(new BigInteger(word.getBytes()), crypto.getSecretKey());
         
+        //search on server
         List<File> retVal = new ArrayList<File>();
         try {
+            //Send (Kw,STC,c) to server
             List<SealedObject> encrFiles = serverStub.search(ST, Kw);
+            
+            //decrypt returned files
             for (SealedObject sealedObject : encrFiles) {
                 File file = (File) Crypto.decryptObject(
                     Crypto.DEFAULT_SYM_ALGORITHM, 
                     sealedObject, 
-                    crypto.symmetricKey, 
-                    crypto.IV_privKeyEncr
+                    crypto.getSecretKey(), 
+                    crypto.getIV()
                 );
                 retVal.add(file);
             }
@@ -239,6 +239,11 @@ public class Client {
         }
     }
 
+    /**
+     * 
+     * @param document
+     * @return
+     */
     BigInteger uploadFile(File document){
 
         //encrypt index
@@ -249,8 +254,8 @@ public class Client {
             String encrInd = Crypto.encrypt(
                 Crypto.DEFAULT_SYM_ALGORITHM, 
                 filename, 
-                crypto.symmetricKey, 
-                crypto.IV_privKeyEncr
+                crypto.getSecretKey(), 
+                crypto.getIV()
             );
             eind = new BigInteger(encrInd.getBytes());
         } catch (Exception e) {
@@ -263,8 +268,8 @@ public class Client {
             encrFile = Crypto.encryptObject(
                 Crypto.DEFAULT_SYM_ALGORITHM,
                 document,
-                crypto.symmetricKey, 
-                crypto.IV_privKeyEncr
+                crypto.getSecretKey(), 
+                crypto.getIV()
             );
         } catch (Exception e) {
             e.printStackTrace();
@@ -280,6 +285,11 @@ public class Client {
         return eind;
     }
 
+    /**
+     * 
+     * @param eind
+     * @return
+     */
     File downloadFile(BigInteger eind){
 
         File retVal = null;
@@ -289,8 +299,8 @@ public class Client {
             retVal = (File) Crypto.decryptObject(
                 Crypto.DEFAULT_SYM_ALGORITHM, 
                 encrFile, 
-                crypto.symmetricKey, 
-                crypto.IV_privKeyEncr
+                crypto.getSecretKey(), 
+                crypto.getIV()
             );
         } catch (Exception e) {
             e.printStackTrace();
@@ -299,6 +309,11 @@ public class Client {
         return retVal;
     }
 
+    /**
+     * 
+     * @param filename
+     * @return
+     */
     File downloadFile(String filename){
 
         BigInteger eind = null;
@@ -307,8 +322,8 @@ public class Client {
             String encrInd = Crypto.encrypt(
                 Crypto.DEFAULT_SYM_ALGORITHM, 
                 filename, 
-                crypto.symmetricKey, 
-                crypto.IV_privKeyEncr
+                crypto.getSecretKey(), 
+                crypto.getIV()
             );
             eind = new BigInteger(encrInd.getBytes());
         } catch (Exception e) {
@@ -319,7 +334,7 @@ public class Client {
     }
 
     public static void main(String[] args) {
-        System.out.println("[INFO] Client started");
         Client client = new Client();
+        System.out.println("[INFO] Client started");
     }
 }

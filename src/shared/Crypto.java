@@ -34,15 +34,15 @@ import javax.crypto.spec.SecretKeySpec;
 public class Crypto {
     
     //symmetric key
-    public SecretKey symmetricKey;//TODO: make private this is just for testing
-    public IvParameterSpec IV_privKeyEncr;//TODO: make private this is just for testing TODO:rename not only used for encrypting priv key
+    private SecretKey symmetricKey;
+    private IvParameterSpec IV_privKeyEncr;
     private String ivPath;
     static final String DEFAULT_IV_PATH = "iv.key";
 
     //asymmetric key pair
     private KeyPair keyPair;
-    public RSAPublicKey publicKey; //TODO: make private this is just for testing
-    public RSAPrivateKey privateKey;//TODO: make private this is just for testing
+    private RSAPublicKey publicKey;
+    private RSAPrivateKey privateKey;
    
     private String privateKeyPath;
     static final String DEFAULT_PRIVATEKEY_PATH = "private.key";
@@ -64,8 +64,6 @@ public class Crypto {
 
     //symmetric encryption algorithm
     public static final String DEFAULT_SYM_ALGORITHM = "AES/CBC/PKCS5Padding";
-    
-    
     
 
     /**
@@ -140,6 +138,41 @@ public class Crypto {
 
     /*
      *************************************************************************************************
+     * GETTER/SETTER
+     *************************************************************************************************
+    */
+
+    /**
+     * @return the public key from the asymmetric key pair
+     */
+    public RSAPublicKey getPublicKey(){
+        return this.publicKey;
+    }
+
+    /**
+     * @return the private key from the asymmetric key pair
+     */
+    public RSAPrivateKey getPrivateKey(){
+        return this.privateKey;
+    }
+
+    /**
+     * @return the secret symmetric key
+     */
+    public SecretKey getSecretKey(){
+        return this.symmetricKey;
+    }
+
+    /**
+     * 
+     * @return the IV from the symmetric encryption
+     */
+    public IvParameterSpec getIV(){
+        return this.IV_privKeyEncr;
+    }
+
+    /*
+     *************************************************************************************************
      * KEY STORAGE
      *************************************************************************************************
     */
@@ -153,7 +186,7 @@ public class Crypto {
     private void createKeyStore() throws Exception{
 
         //Creating the KeyStore object
-        KeyStore keyStore = KeyStore.getInstance("JCEKS");//TODO: check parameter types
+        KeyStore keyStore = KeyStore.getInstance("JCEKS");
         keyStore.load(null, keyStorePW.toCharArray());        
 
         //write keystore to disk
@@ -173,7 +206,7 @@ public class Crypto {
     public void storeKeys() throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException{
 
         //Creating the KeyStore object
-        KeyStore keyStore = KeyStore.getInstance("JCEKS");//TODO: check parameter types
+        KeyStore keyStore = KeyStore.getInstance("JCEKS");
 
         //Check if the keystore file is present and if not create a new one
         File keyStoreFile = new File(keyStorePath);
@@ -395,14 +428,6 @@ public class Crypto {
 
     /**
      * 
-     * @return
-     */
-    public RSAPublicKey getPublicKey(){
-        return this.publicKey;
-    }
-
-    /**
-     * 
      * @param privateKey
      * @param publicKey
      */
@@ -466,33 +491,4 @@ public class Crypto {
         Serializable unsealObject = (Serializable) sealedObject.getObject(cipher);
         return unsealObject;
     }
-
-    public static void encryptFile(String algorithm, SecretKey key, IvParameterSpec iv,
-    File inputFile, File outputFile) throws Exception {
-    
-        Cipher cipher = Cipher.getInstance(algorithm);
-        cipher.init(Cipher.ENCRYPT_MODE, key, iv);
-        FileInputStream inputStream = new FileInputStream(inputFile);
-        FileOutputStream outputStream = new FileOutputStream(outputFile);
-        byte[] buffer = new byte[64];
-        int bytesRead;
-        while ((bytesRead = inputStream.read(buffer)) != -1) {
-            byte[] output = cipher.update(buffer, 0, bytesRead);
-            if (output != null) {
-                outputStream.write(output);
-            }
-        }
-        byte[] outputBytes = cipher.doFinal();
-        if (outputBytes != null) {
-            outputStream.write(outputBytes);
-        }
-        inputStream.close();
-        outputStream.close();
-    }
-
-    public static void decryptFile(String algorithm, SecretKey key, IvParameterSpec ivParameterSpec, 
-        File encryptedFile, File decryptedFile){
-            //not needed
-    }
-
 }

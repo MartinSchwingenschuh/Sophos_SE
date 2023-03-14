@@ -6,16 +6,6 @@ import java.math.BigInteger;
 import java.util.List;
 
 import javax.imageio.ImageIO;
-// import javax.swing.ImageIcon;
-// import javax.swing.JButton;
-// import javax.swing.JFileChooser;
-// import javax.swing.JFrame;
-// import javax.swing.JLabel;
-// import javax.swing.JMenu;
-// import javax.swing.JMenuBar;
-// import javax.swing.JMenuItem;
-// import javax.swing.JPanel;
-// import javax.swing.JTextField;
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
@@ -25,7 +15,6 @@ import org.icepdf.ri.common.SwingController;
 import org.icepdf.ri.common.SwingViewBuilder;
 
 import java.awt.*;
-import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.awt.event.*;
 
@@ -51,8 +40,6 @@ public class GUI {
         screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         windowSize = new Dimension((int) screenSize.getWidth()/2, (int) screenSize.getHeight()/2);
 
-        //TODO: think about scaling
-
         //create a frame
         JFrame frame = new JFrame("Project-Sophos");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -75,8 +62,6 @@ public class GUI {
         ***************************************************************************/
         
         model = new DefaultListModel<File>();
-        // File f = new File(System.getProperty("user.home"));
-        // model.addAll(Arrays.asList(f.listFiles()));
         
         //result panel
         JPanel resultPanel = new JPanel(new BorderLayout());
@@ -97,10 +82,10 @@ public class GUI {
             @Override
             public void mouseClicked(MouseEvent e) {
                System.out.println("element " + fileList.getSelectedValue().getName() + "clicked");
-            //    File document = client.downloadFile(fileList.getSelectedValue().getName());
                 File selectedFile = fileList.getSelectedValue();
                 System.out.println(selectedFile);
                 try {
+                    // solution to open file in a seperate window
                     // Desktop desktop = Desktop.getDesktop();
                     // if (desktop != null && desktop.isSupported(Desktop.Action.OPEN)) {
                     //     desktop.open(selectedFile);
@@ -126,7 +111,7 @@ public class GUI {
         //add the initial files stored on server
         try {
             List<BigInteger> indices = null;
-            indices = client.serverStub.getAllFileIndices();
+            indices = this.client.serverStub.getAllFileIndices();
             for (BigInteger index : indices) {
                 model.addElement(client.downloadFile(index));
             }
@@ -146,12 +131,6 @@ public class GUI {
         }catch(Exception e){
             e.printStackTrace();
         }
-
-        //TODO: implement pdf viewer
-        // JWebBrowser fileBrowser = new JWebBrowser();
-        // fileBrowser.setBarsVisible(false);
-        // fileBrowser.setStatusBarVisible(false);
-        // pdfPanel.add(fileBrowser, BorderLayout.CENTER);
 
         controller = new SwingController(); 
         SwingViewBuilder builder = new SwingViewBuilder(controller);
@@ -181,11 +160,8 @@ public class GUI {
                 //handle the selected file
                 if (fileSuc == JFileChooser.APPROVE_OPTION) {
                     File file = fileChooser.getSelectedFile();
-                    //TODO: build proper log output
                     System.out.println("[INFO] uploading file: " + file); 
-
                     client.addDocument(file.toPath());
-                    
                 } else {
                     System.out.println("[ERROR] error in filechooser");
                 }
@@ -217,7 +193,6 @@ public class GUI {
                     model.clear();
 
                     if(retVal != null){
-                        //TODO: error pop up
                         model.addAll(retVal);
                     }else{
                         System.out.println("[ERROR] searchword not found");
@@ -238,24 +213,6 @@ public class GUI {
         //set frame to visible
         frame.setVisible(true);
     }
-
-
-    /**
-     * Resizes an image using a Graphics2D object backed by a BufferedImage.
-     * @param srcImg - source image to scale
-     * @param w - desired width
-     * @param h - desired height
-     * @return - the new resized image
-     */
-    private Image getScaledImage(Image srcImg, int w, int h){
-        BufferedImage resizedImg = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
-        Graphics2D g2 = resizedImg.createGraphics();
-        g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-        g2.drawImage(srcImg, 0, 0, w, h, null);
-        g2.dispose();
-        return resizedImg;
-    }
-
 }
 
 class FileRenderer extends DefaultListCellRenderer {

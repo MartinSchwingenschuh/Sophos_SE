@@ -5,13 +5,10 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.math.BigInteger;
 import java.nio.file.Files;
-import java.util.Base64;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-import javax.crypto.SealedObject;
-
+import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.SerializationUtils;
 import org.rocksdb.Options;
 import org.rocksdb.RocksDB;
@@ -107,12 +104,12 @@ public class DB<K extends Serializable,V extends Serializable>{
     }
 
     public void delete(K key){
-        //TODO
+        //TODO: deletions are not supported in the current version
+        throw new NotImplementedException();
     }
 
     public List<byte[]> getAllKeys(){
         List<byte[]> retVal = new LinkedList<byte[]>();
-
 
         RocksIterator iterator = db.newIterator();
         iterator.seekToFirst();
@@ -125,81 +122,10 @@ public class DB<K extends Serializable,V extends Serializable>{
         return retVal;
     }
 
-    /*************************************************************/
+    public List<byte[]> getAllValues(){
+        List<byte[]> retVal = new LinkedList<byte[]>();
 
-    // public void save(Token key, byte[] value) {
-    //     try {
-    //         db.put(key.val.toByteArray(), value);
-    //     } catch (RocksDBException e) {
-    //         e.printStackTrace();
-    //     }
-    // }
 
-    // public void save(String key, Token value){
-    //     try {
-    //         db.put(key.getBytes(), value.val.toByteArray());
-    //     } catch (RocksDBException e) {
-    //         e.printStackTrace();
-    //     }
-    // }
-
-    // public void save(BigInteger key, SealedObject value){
-    //     try {
-    //         db.put(key.toByteArray(), SerializationUtils.serialize(value));
-    //     } catch (RocksDBException e) {
-    //         e.printStackTrace();
-    //     }
-    // }
-
-    // public byte[] find(Token key) {
-    //     byte[] data = null;
-    //     try {
-    //         data = db.get(key.val.toByteArray());
-    //     } catch (RocksDBException e) {
-    //         e.printStackTrace();
-    //     }
-    //     return data;
-    // }
-
-    // public byte[] find(String key) {
-    //     byte[] data = null;
-    //     try {
-    //         data = db.get(key.getBytes());
-    //     } catch (RocksDBException e) {
-    //         e.printStackTrace();
-    //     }
-
-    //     return data;
-    // }
-
-    // public SealedObject find(BigInteger key) {
-    //     SealedObject data = null;
-    //     try {
-    //         data = SerializationUtils.deserialize(db.get(key.toByteArray()));
-    //     } catch (RocksDBException e) {
-    //         e.printStackTrace();
-    //     }
-
-    //     return data;
-    // }
-
-    // public void delete(Token key) {
-    //     try {
-    //         db.delete(SerializationUtils.serialize(key));
-    //     } catch (RocksDBException e) {
-    //         e.printStackTrace();
-    //     }
-    // }
-
-    // public void delete(String key) {
-    //     try {
-    //         db.delete(key.getBytes());
-    //     } catch (RocksDBException e) {
-    //         e.printStackTrace();
-    //     }
-    // }
-
-    // public List<BigInteger> getAllFileIndices(){
-    //     return null;
-    // }
+        return retVal;
+    }
 }

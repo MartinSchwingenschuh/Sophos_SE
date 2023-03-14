@@ -1,6 +1,5 @@
 package Server;
 
-import java.io.File;
 import java.math.BigInteger;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
@@ -28,13 +27,6 @@ public interface IRemoteServer extends Remote{
      * @throws RemoteException
      */
     SealedObject getFile(BigInteger ind) throws RemoteException;
-
-    /**
-     * 
-     * @return
-     * @throws RemoteException
-     */
-    List<File> getAllFiles() throws RemoteException;
 
     /**
      * 

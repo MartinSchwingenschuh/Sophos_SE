@@ -8,7 +8,6 @@ public class Token implements Serializable{
     public BigInteger val;
     public int count;
 
-    //TODO: not really needed
     @Override
     public boolean equals(Object o){
         if(o.getClass() != Token.class){ return false; }
