@@ -145,14 +145,19 @@ public class Client {
                     sealedObject, 
                     crypto.getSecretKey(), 
                     crypto.getIV()
-                );
+                );  
+
                 retVal.add(file);
             }
         } catch (Exception e) {
             e.printStackTrace();
-        }
+        }      
 
-        return retVal;
+        //filter file list
+        List<File> filtered = new ArrayList<File>();
+        retVal.stream().distinct().forEach(f ->{ filtered.add(f); });
+
+        return filtered;
     }
 
     /**
@@ -171,10 +176,9 @@ public class Client {
         
         //encrypt document and send it to server for storage
         File document = filePath.toFile();
-        BigInteger eind = uploadFile(document);
-        
+        BigInteger eind = uploadFile(document);        
 
-        //extract each word of the document and process them
+        //patterns to check the filetype
         Pattern PDFpattern = Pattern.compile(".pdf", Pattern.CASE_INSENSITIVE);
         Matcher PDFmatcher = PDFpattern.matcher(document.getName());
 
@@ -336,5 +340,6 @@ public class Client {
     public static void main(String[] args) {
         Client client = new Client();
         System.out.println("[INFO] Client started");
+        System.out.println("TEST");
     }
 }

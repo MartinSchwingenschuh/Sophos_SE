@@ -15,5 +15,4 @@ public class Token implements Serializable{
         if(((Token) o).val != this.val){ return false; }
         return true;
     }
-
 }
